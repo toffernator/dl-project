@@ -8,6 +8,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "~3.11"
+h5py = "^3.10.0"
+numpy = "^1.26.2"
+matplotlib = "^3.8.2"
 
 [tool.poetry.scripts]
 main="src.main:main"

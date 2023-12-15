@@ -19,7 +19,10 @@
       in
       {
         packages = {
-          src = mkPoetryApplication { projectDir = self; };
+          src = mkPoetryApplication { 
+            projectDir = self;
+            preferWheels = true;
+          };
           default = self.packages.${system}.src;
         };
 
