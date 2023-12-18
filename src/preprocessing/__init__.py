@@ -1,1 +1,1 @@
-from .minMaxScaling import MinMaxScalarBatched
+from .minMaxScaling import MinMaxScalerBatched

@@ -1,26 +1,21 @@
 from pathlib import Path
 import os
 import numpy as np
-
+import src.utils as utils
 import h5py
 
-def get_dataset_name(file_name_with_dir: Path) -> str:
-    file_name_without_dir = file_name_with_dir.name
-    name_parts = file_name_without_dir.split("_")
-    dataset_name = "_".join(name_parts[:-1])
-    return dataset_name
-
-class MinMaxScalarBatched():
+class MinMaxScalerBatched():
     def __init__(self, trainDir=Path("dataset/Intra/train/")):
-        self.loadMinMaxList(self, trainDir)
+        self.loadMinMaxList(trainDir)
     
 
     def loadMinMaxList(self, trainDir):
         minList = []
         maxList = []
-        for filename in trainDir:
+        filenames = os.scandir(trainDir)
+        for filename in filenames:
             with h5py.File(filename, "r") as f:
-                dataset_name = get_dataset_name(filename)
+                dataset_name = utils.get_dataset_name(filename)
                 matrix = f.get(dataset_name)[()]
                 cMin = matrix.min(axis=1)
                 cMax = matrix.max(axis=1)
@@ -30,6 +25,7 @@ class MinMaxScalarBatched():
         maxList = np.array(maxList).max(axis=0)
         self.minList = minList
         self.maxList = maxList
+
     
     def applyMinMaxScaling(self, data):
         for (i, column) in enumerate(data):
