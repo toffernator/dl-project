@@ -1,28 +1,49 @@
 from pathlib import Path
 import h5py
 import numpy as np
+from enum import Enum
 
 DATASET_DIR = "dataset"
 INTRA_DIR = "Intra"
 CROSS_DIR = "Cross"
 PREPROCESSED_DIR = "Preprocessed"
 
-LABELS = ["rest", "motor", "math", "memory"]
-LABEL_IDS = {"rest": 0, "motor": 1, "math": 2, "memory": 3}
+
+class Label(Enum):
+    rest = 0
+    motor = 1
+    math = 2
+    memory = 3
+
+    @staticmethod
+    def from_str(label):
+        match label:
+            case "rest":
+                return Label.rest
+            case "motor":
+                return Label.motor
+            case "memory":
+                return Label.memory
+            case "math":
+                return Label.math
+
+        raise RuntimeError(f"Unknown label {label}")
+
+    def __str__(self):
+        return self.name
 
 
 class DatasetFile:
     path: Path
     name: str
     subject: str
-    label: str
-    label_id: int
+    label: Label
     preprocessed: bool
 
     def __init__(self, filepath: Path, load_preprocess=True):
         self.path = filepath
         self.name, self.subject = get_dataset_name_subject(filepath)
-        self.label, self.label_id = label_dataset(filepath)
+        self.label = label_dataset(filepath)
         self.preprocessed = False
 
         if not load_preprocess:
@@ -33,7 +54,7 @@ class DatasetFile:
             self.path = preprocessed_path
             self.preprocessed = True
 
-    def load(self):
+    def load(self) -> np.ndarray:
         if self.preprocessed:
             with open(self.path, "rb") as f:
                 matrix = np.load(f)
@@ -48,7 +69,7 @@ class DatasetFile:
         self.preprocessed = True
 
     def __str__(self):
-        return f"<DatasetFile '{str(self.path)}' label={self.label}({self.label_id}) pp={self.preprocessed}>"
+        return f"<DatasetFile '{str(self.path)}' label={self.label}({int(self.label.value)}) pp={self.preprocessed}>"
 
     def __repr__(self):
         return str(self)
@@ -106,10 +127,10 @@ def get_preprocessed_path(original_path: Path):
 
 def label_dataset(filepath: Path):
     filename = filepath.name
-    for label in LABELS:
+    for label in Label:
         try:
-            filename.index(label)
-            return (label, LABEL_IDS[label])
+            filename.index(label.name)
+            return label
         except:
             pass
 
