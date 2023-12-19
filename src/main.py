@@ -1,5 +1,7 @@
 from pathlib import Path
 from src.preprocessing.minMaxScaling import MinMaxScalerBatched
+from src.downsampling import Downsampler
+
 import src.utils as utils
 import src.dataset_loader as dsloader
 import h5py
@@ -14,6 +16,9 @@ def main():
     scaler = MinMaxScalerBatched()
     scaler.applyMinMaxScaling(matrix)
     print(matrix)
+    reduced = Downsampler().chunk_and_average_columns(matrix, 2)    # Chunk size = 2 
+    print(reduced)
+    print(reduced.shape)
 
 
 if __name__ == "__main__":
