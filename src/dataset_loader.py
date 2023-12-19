@@ -8,29 +8,24 @@ CROSS_DIR = "Cross"
 PREPROCESSED_DIR = "Preprocessed"
 
 LABELS = ["rest", "motor", "math", "memory"]
-LABEL_IDS = {
-    "rest": 0,
-    "motor": 1,
-    "math": 2,
-    "memory": 3
-}
+LABEL_IDS = {"rest": 0, "motor": 1, "math": 2, "memory": 3}
+
 
 class DatasetFile:
-    path : Path
-    name : str
+    path: Path
+    name: str
     subject: str
-    label : str
-    label_id : int
-    preprocessed : bool
+    label: str
+    label_id: int
+    preprocessed: bool
 
-
-    def __init__(self, filepath : Path, check_preprocess=True):
+    def __init__(self, filepath: Path, load_preprocess=True):
         self.path = filepath
         self.name, self.subject = get_dataset_name_subject(filepath)
         self.label, self.label_id = label_dataset(filepath)
         self.preprocessed = False
 
-        if not check_preprocess:
+        if not load_preprocess:
             return
 
         preprocessed_path = get_preprocessed_path(filepath)
@@ -38,38 +33,35 @@ class DatasetFile:
             self.path = preprocessed_path
             self.preprocessed = True
 
-
     def load(self):
         if self.preprocessed:
-            with open(self.path, 'rb') as f:
+            with open(self.path, "rb") as f:
                 matrix = np.load(f)
                 return matrix
         else:
-            with h5py.File(self.path, 'r') as f:
+            with h5py.File(self.path, "r") as f:
                 matrix = f.get(self.name)[()]
-                return matrix # orig size: (248, 35624)
+                return matrix  # orig size: (248, 35624)
 
-
-    def save_preprocessed(self, matrix : np.ndarray):
+    def save_preprocessed(self, matrix: np.ndarray):
         self.path = save_preprocessed(self.path, matrix)
         self.preprocessed = True
-
 
     def __str__(self):
         return f"<DatasetFile '{str(self.path)}' label={self.label}({self.label_id}) pp={self.preprocessed}>"
 
-
     def __repr__(self):
         return str(self)
 
+
 # returns a pair of list of training dataset files and list of test dataset files from "Intra"
-def get_intra_dataset_files(check_preprocess=True):
-    return get_dataset_files(INTRA_DIR, check_preprocess)
+def get_intra_dataset_files(load_preprocess=True):
+    return get_dataset_files(INTRA_DIR, load_preprocess)
 
 
 # returns a pair of list of training dataset files and list of test dataset files from "Cross"
-def get_cross_dataset_files(check_preprocess=True):
-    return get_dataset_files(CROSS_DIR, check_preprocess)
+def get_cross_dataset_files(load_preprocess=True):
+    return get_dataset_files(CROSS_DIR, load_preprocess)
 
 
 def save_preprocessed(original_path: Path, matrix: np.ndarray):
@@ -80,20 +72,22 @@ def save_preprocessed(original_path: Path, matrix: np.ndarray):
 
     return path
 
+
 ### Helpers
 
-def get_dataset_files(training_type, check_preprocess=True):
+
+def get_dataset_files(training_type, load_preprocess=True):
     path = Path(f"{DATASET_DIR}/{training_type}")
     if not (path.exists() and path.is_dir()):
         raise FileNotFoundError(f"{training_type} dataset not found")
 
-    train = [DatasetFile(f, check_preprocess) for f in path.glob("train/*.h5")]
-    test = [DatasetFile(f, check_preprocess) for f in path.glob("test*/*.h5")]
+    train = [DatasetFile(f, load_preprocess) for f in path.glob("train/*.h5")]
+    test = [DatasetFile(f, load_preprocess) for f in path.glob("test*/*.h5")]
 
     return (train, test)
 
 
-def get_dataset_name_subject(filepath : Path):
+def get_dataset_name_subject(filepath: Path):
     filename = filepath.name
     temp = filename.split("_")[:-1]
     subject = temp[-1]
@@ -101,7 +95,7 @@ def get_dataset_name_subject(filepath : Path):
     return (dataset_name, subject)
 
 
-def get_preprocessed_path(original_path : Path):
+def get_preprocessed_path(original_path: Path):
     pathstr = str(original_path)
     if pathstr.startswith(f"{DATASET_DIR}/{PREPROCESSED_DIR}"):
         return original_path
@@ -110,7 +104,7 @@ def get_preprocessed_path(original_path : Path):
     return Path(preprocessed_path)
 
 
-def label_dataset(filepath : Path):
+def label_dataset(filepath: Path):
     filename = filepath.name
     for label in LABELS:
         try:
