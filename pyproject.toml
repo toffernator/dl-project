@@ -12,6 +12,7 @@ numpy = "^1.26.2"
 matplotlib = "^3.8.2"
 h5py = "^3.10.0"
 scikit-learn = "^1.3.2"
+scipy = "^1.11.4"
 
 [tool.poetry.scripts]
 main="src.main:main"
