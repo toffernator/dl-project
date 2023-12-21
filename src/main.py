@@ -16,9 +16,13 @@ def main():
     scaler = MinMaxScalerBatched()
     scaler.applyMinMaxScaling(matrix)
     print(matrix)
-    reduced = Downsampler().chunk_and_average_columns(matrix, 2)    # Chunk size = 2 
-    print(reduced)
-    print(reduced.shape)
+    # reduced = Downsampler().chunk_and_average_columns(matrix, 2)    # Chunk size = 2 
+    # print(reduced)
+    # print(reduced.shape)
+
+    sciReduced = Downsampler().sciResample(matrix, 1017)
+    print(sciReduced)
+    print(sciReduced.shape)
 
 
 if __name__ == "__main__":

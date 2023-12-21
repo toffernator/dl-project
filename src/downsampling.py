@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from scipy.signal import resample
 
 class Downsampler():
     # def __init__(self, data):
@@ -23,3 +24,18 @@ class Downsampler():
             averaged_chunks[:, i] = np.mean(chunk, axis=1)
 
         return averaged_chunks
+    
+
+    def sciResample(self ,data , new_sampling_rate) :
+        original_sampling_rate = 2034 
+
+        num_samples = int(data.shape[1] * new_sampling_rate / original_sampling_rate)
+
+        downsampled_data = np.zeros((data.shape[0], num_samples))
+
+        for i in range(data.shape[0]):
+            downsampled_data[i, :] = resample(data[i, :], num_samples)
+
+        return downsampled_data
+    
+
