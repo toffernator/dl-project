@@ -1,10 +1,6 @@
 import os
 import numpy as np
-<<<<<<< HEAD
-from scipy.signal import resample
-=======
 from scipy.signal import resample, decimate
->>>>>>> 5e7902a1b954b1fdde71ad8b770f5d9fa8cc4a53
 
 
 class Downsampler:
@@ -28,7 +24,6 @@ class Downsampler:
             averaged_chunks[:, i] = np.mean(chunk, axis=1)
 
         return averaged_chunks
-<<<<<<< HEAD
     
 
     def sciResample(self ,data , new_sampling_rate) :
@@ -44,8 +39,6 @@ class Downsampler:
         return downsampled_data
     
 
-=======
 
     def decimate(self, data, factor):
         return decimate(data, factor, axis=1)
->>>>>>> 5e7902a1b954b1fdde71ad8b770f5d9fa8cc4a53
