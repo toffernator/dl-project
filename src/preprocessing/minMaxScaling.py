@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 import numpy as np
-import src.utils as utils
+import utils as utils
 import h5py
 
 class MinMaxScalerBatched():
