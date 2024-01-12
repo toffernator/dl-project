@@ -3,7 +3,11 @@ from src.preprocessing.minMaxScaling import MinMaxScalerBatched
 from src.downsampling import Downsampler
 
 import src.utils as utils
-from src.dataset_loader import get_intra_dataset_files, DatasetFile
+from src.dataset_loader import (
+    get_intra_dataset_files,
+    get_cross_dataset_files,
+    DatasetFile,
+)
 import h5py
 
 import numpy as np
@@ -14,9 +18,8 @@ from tensorflow import keras
 import tensorflow as tf
 
 # from tcn import TCN, tcn_full_summary
-from src.model.example import example_model
-
-import gc
+from src.model.cnn import cnn_model
+from src.trainer import train_eval
 
 
 def run_preprocess(train, test):
@@ -37,12 +40,19 @@ def run_preprocess(train, test):
 
 
 def main():
+    INPUT_SHAPE = (248, 3563)
+    TRAIN_EPOCHS = 30
+    BATCH_SIZE = 8
+
     train, test = get_intra_dataset_files()
+    # train, test = get_cross_dataset_files()
     if not train[0].preprocessed:
         print("run preprocessing...")
         run_preprocess(train, test)
 
-    example_model()
+    model = cnn_model(INPUT_SHAPE, "intra")
+
+    train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test)
 
     # # first train data in Intra: "dataset/Intra/train/rest_105923_1.h5"
     # matrix = train[0].load()
