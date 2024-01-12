@@ -21,6 +21,15 @@ import tensorflow as tf
 from src.model.cnn import cnn_model
 from src.trainer import train_eval
 
+# DOWNSAMPLE_FACTOR = 5
+# INPUT_SHAPE = (248, 7125)
+
+DOWNSAMPLE_FACTOR = 10
+INPUT_SHAPE = (248, 3563)
+
+TRAIN_EPOCHS = 30
+BATCH_SIZE = 8
+
 
 def run_preprocess(train, test):
     scaler = MinMaxScalerBatched()
@@ -29,7 +38,7 @@ def run_preprocess(train, test):
     def preprocess(file):
         matrix = file.load()
         scaler.applyMinMaxScaling(matrix)
-        matrix = sampler.decimate(matrix, 10)
+        matrix = sampler.decimate(matrix, DOWNSAMPLE_FACTOR)
         file.save_preprocessed(matrix)
 
     for file in train:
@@ -40,12 +49,9 @@ def run_preprocess(train, test):
 
 
 def main():
-    INPUT_SHAPE = (248, 3563)
-    TRAIN_EPOCHS = 30
-    BATCH_SIZE = 8
-
     train, test = get_intra_dataset_files()
     # train, test = get_cross_dataset_files()
+
     if not train[0].preprocessed:
         print("run preprocessing...")
         run_preprocess(train, test)

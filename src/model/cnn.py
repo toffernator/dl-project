@@ -4,7 +4,7 @@ keras = tf.keras
 from keras import models, layers, losses
 
 
-def cnn_model(input_shape=(248, 3563), name_suffix=None):
+def cnn_model(input_shape, name_suffix=None):
     tensor_shape = (input_shape[0], input_shape[1], 1)
 
     name = "cnn_model" if not name_suffix else f"cnn_model_{name_suffix}"
