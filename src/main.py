@@ -1,4 +1,5 @@
 from pathlib import Path
+from enum import Enum
 from src.preprocessing.minMaxScaling import MinMaxScalerBatched
 from src.downsampling import Downsampler
 
@@ -18,9 +19,13 @@ from tensorflow import keras
 import tensorflow as tf
 
 # from tcn import TCN, tcn_full_summary
+from src.model.lstm import lstm_model
 from src.model.cnn import cnn_model
 from src.trainer import train_eval
 
+class NN(Enum): 
+    CNN = 1 
+    LSTM = 2
 # DOWNSAMPLE_FACTOR = 5
 # INPUT_SHAPE = (248, 7125)
 
@@ -29,7 +34,7 @@ INPUT_SHAPE = (248, 3563)
 
 TRAIN_EPOCHS = 30
 BATCH_SIZE = 8
-
+NETWORK = NN.CNN 
 
 def run_preprocess(train, test):
     scaler = MinMaxScalerBatched()
@@ -56,7 +61,12 @@ def main():
         print("run preprocessing...")
         run_preprocess(train, test)
 
-    model = cnn_model(INPUT_SHAPE, "intra")
+    if(NETWORK == NN.CNN):
+        model = cnn_model(INPUT_SHAPE, "intra")
+    
+    elif(NETWORK == NN.LSTM):
+        model = lstm_model(INPUT_SHAPE, "intra")
+    
 
     train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test)
 
