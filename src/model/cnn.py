@@ -11,12 +11,12 @@ def cnn_model(input_shape, name_suffix=None):
 
     model = models.Sequential(
         [
-            layers.Conv2D(10, (5, 5), activation="relu", input_shape=tensor_shape),
-            layers.MaxPool2D((2, 2)),
-            layers.Conv2D(10, (5, 5), activation="relu"),
-            layers.MaxPool2D((2, 2)),
-            layers.Conv2D(10, (5, 5), activation="relu"),
-            layers.MaxPool2D((2, 2)),
+            layers.Conv2D(4, (5, 5), activation="relu", input_shape=tensor_shape),
+            layers.MaxPool2D((1, 5)),
+            layers.Conv2D(4, (5, 5), activation="relu"),
+            layers.MaxPool2D((1, 5)),
+            layers.Conv2D(4, (5, 5), activation="relu"),
+            layers.MaxPool2D((1, 5)),
             layers.Flatten(),
             layers.Dense(4, activation="softmax"),
         ],

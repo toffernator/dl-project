@@ -10,8 +10,8 @@ def lstm_model(input_shape, name_suffix=None):
 
     model = models.Sequential(
         [
-            layers.LSTM(32, input_shape=tensor_shape),
-            layers.Dense(4),
+            layers.LSTM(124, input_shape=tensor_shape, activation="relu"),
+            layers.Dense(4, activation= 'softmax'),
         ],
         name=name,
     )

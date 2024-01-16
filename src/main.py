@@ -54,8 +54,8 @@ def run_preprocess(train, test):
 
 
 def main():
-    train, test = get_intra_dataset_files()
-    # train, test = get_cross_dataset_files()
+    # train, test = get_intra_dataset_files()
+    train, test = get_cross_dataset_files()
 
     if not train[0].preprocessed:
         print("run preprocessing...")
