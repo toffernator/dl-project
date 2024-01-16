@@ -25,19 +25,23 @@ from src.model.EEGNet import eeg_model
 
 from src.trainer import train_eval
 
-class NN(Enum): 
-    CNN = 1 
+
+class NN(Enum):
+    CNN = 1
     LSTM = 2
-    EEGNet= 3
+    EEGNet = 3
+
+
 # DOWNSAMPLE_FACTOR = 5
 # INPUT_SHAPE = (248, 7125)
 
-DOWNSAMPLE_FACTOR = 16
-INPUT_SHAPE = (248, 2227)
+DOWNSAMPLE_FACTOR = 10
+INPUT_SHAPE = (248, 3563)
 
 TRAIN_EPOCHS = 30
 BATCH_SIZE = 8
-NETWORK = NN.CNN 
+NETWORK = NN.CNN
+
 
 def run_preprocess(train, test):
     scaler = MinMaxScalerBatched()
@@ -65,15 +69,14 @@ def main():
         print("run preprocessing...")
         run_preprocess(train, test)
 
-    if(NETWORK == NN.CNN):
+    if NETWORK == NN.CNN:
         model = cnn_model(INPUT_SHAPE, "intra")
-    
-    elif(NETWORK == NN.LSTM):
+
+    elif NETWORK == NN.LSTM:
         model = lstm_model(INPUT_SHAPE, "intra")
-    
-    elif(NETWORK == NN.EEGNet):
+
+    elif NETWORK == NN.EEGNet:
         model = eeg_model(INPUT_SHAPE)
-    
 
     train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test)
 
