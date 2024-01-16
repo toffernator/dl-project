@@ -8,6 +8,8 @@ import gc
 from sklearn.metrics import confusion_matrix
 from src.dataset_loader import Label, DatasetFile
 
+import matplotlib.pyplot as plt
+
 SAVED_MODEL_DIR = "models"
 
 
@@ -20,11 +22,14 @@ def train_eval(
     eval_per_epoch=5,
     save_model=True,
 ):
-    def evaluate_model():
+    def evaluate_model(verbose=False):
         print("Eval with test dataset")
 
+        cm_size = (len(Label), len(Label))
+
         eval_results = []
-        conf_matrix = np.zeros((len(Label), len(Label)), np.int32)
+        conf_matrix = np.zeros(cm_size, np.int32)
+        cm_per_subject = {}
 
         for idx in range(0, len(test_dataset), batch_size):
             files = test_dataset[idx : idx + batch_size]
@@ -47,9 +52,16 @@ def train_eval(
             prediction_label = np.argmax(predictions, axis=1)
             actual_label = np.array([file.label.value for file in files])
 
-            conf_matrix += confusion_matrix(
+            cm = confusion_matrix(
                 actual_label, prediction_label, labels=np.arange(len(Label))
             )
+
+            conf_matrix += cm
+
+            if not file.subject in cm_per_subject:
+                cm_per_subject[file.subject] = np.zeros(cm_size, np.int32)
+
+            cm_per_subject[file.subject] += cm
 
             del x_test
             del y_test
@@ -57,15 +69,30 @@ def train_eval(
 
         mean_results = np.mean(eval_results, axis=0)
         print(f"Err: {mean_results[0]} Acc: {mean_results[1]}")
-        print("Conf. Matrix")
+        print("Conf. Matrix (all)")
         print(conf_matrix)
+
+        if verbose:
+            for subject, cm in cm_per_subject.items():
+                print(f"Subject {subject}")
+                print(cm)
+
+        return mean_results
 
     print("Start training")
     model.summary()
 
     train_dataset = round_robin(train_dataset, split_per_subject)
 
+    train_losses = []
+    train_accuracies = []
+
+    eval_losses = []
+    eval_accuracies = []
+
     for epoch in range(epochs):
+        curr_losses = []
+        curr_accuracies = []
         for idx in range(0, len(train_dataset), batch_size):
             files = train_dataset[idx : idx + batch_size]
 
@@ -83,18 +110,42 @@ def train_eval(
 
             model.fit(x_train, y_train, batch_size=batch_size, epochs=1)
 
+            curr_losses.append(model.history.history["loss"][0])
+            curr_accuracies.append(model.history.history["accuracy"][0])
+
             del x_train
             del y_train
             gc.collect()
 
+        train_losses.append(np.mean(curr_losses))
+        train_accuracies.append(np.mean(curr_accuracies))
+
         ## evaluation
 
         if eval_per_epoch > 0 and epoch % eval_per_epoch == 0 and epoch > 0:
-            evaluate_model()
+            loss, acc = evaluate_model()
+            eval_losses.append(loss)
+            eval_accuracies.append(acc)
 
-    evaluate_model()
+    loss, acc = evaluate_model(verbose=True)
+    eval_losses.append(loss)
+    eval_accuracies.append(acc)
+
+    print(train_losses, train_accuracies)
+    print(eval_losses, eval_accuracies)
+
+    x_plot_train = range(epochs)
+    x_plot_eval = [x for x in range(epochs) if x % eval_per_epoch == 0 and x > 0]
+    x_plot_eval.append(epochs - 1)
 
     model.save(f"{SAVED_MODEL_DIR}/{model.name}")
+
+    plt.clf()
+    plt.plot(x_plot_train, train_accuracies, label="train accuracy")
+    plt.plot(x_plot_eval, eval_accuracies, label="eval accuracy")
+    plt.legend()
+    plt.savefig(".ignore/accuracy.png")
+    plt.show()
 
 
 def train_eval_per_subject(
