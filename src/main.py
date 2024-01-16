@@ -32,8 +32,8 @@ class NN(Enum):
 # DOWNSAMPLE_FACTOR = 5
 # INPUT_SHAPE = (248, 7125)
 
-DOWNSAMPLE_FACTOR = 10
-INPUT_SHAPE = (248, 3563)
+DOWNSAMPLE_FACTOR = 16
+INPUT_SHAPE = (248, 2227)
 
 TRAIN_EPOCHS = 30
 BATCH_SIZE = 8
@@ -47,6 +47,7 @@ def run_preprocess(train, test):
         matrix = file.load()
         scaler.applyMinMaxScaling(matrix)
         matrix = sampler.decimate(matrix, DOWNSAMPLE_FACTOR)
+        print(matrix.shape)
         file.save_preprocessed(matrix)
 
     for file in train:
