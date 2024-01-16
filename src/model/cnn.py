@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 keras = tf.keras
-from keras import models, layers, losses
+from keras import models, layers, losses, regularizers
 from keras.layers import BatchNormalization
 
 def cnn_model(input_shape, name_suffix=None, dropoutRate= 0.5):
@@ -11,7 +11,8 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate= 0.5):
 
     model = models.Sequential(
         [
-            layers.Conv2D(4, (4, 4), activation="relu", input_shape=tensor_shape, strides=(2, 1)),
+            
+            layers.Conv2D(4, (4, 4), activation="relu", input_shape=tensor_shape, strides=(2, 1), kernel_initializer="he_normal"),
             layers.MaxPool2D((1, 4)),
             layers.Dropout(dropoutRate, noise_shape=None, seed=None),
 
