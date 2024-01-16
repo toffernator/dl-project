@@ -22,6 +22,7 @@ import tensorflow as tf
 from src.model.lstm import lstm_model
 from src.model.cnn import cnn_model
 from src.model.EEGNet import eeg_model
+from src.model.tcn import tcn_model
 
 from src.trainer import train_eval
 
@@ -30,6 +31,7 @@ class NN(Enum):
     CNN = 1
     LSTM = 2
     EEGNet = 3
+    TCN = 4
 
 
 # DOWNSAMPLE_FACTOR = 5
@@ -83,6 +85,9 @@ def main():
 
     elif NETWORK == NN.EEGNet:
         model = eeg_model(INPUT_SHAPE)
+
+    elif NETWORK == NN.TCN:
+        model = tcn_model(INPUT_SHAPE, BATCH_SIZE, "intra")
 
     train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test)
 
