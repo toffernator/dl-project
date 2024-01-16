@@ -27,8 +27,10 @@ from src.trainer import train_eval
 DOWNSAMPLE_FACTOR = 10
 INPUT_SHAPE = (248, 3563)
 
-TRAIN_EPOCHS = 30
+TRAIN_EPOCHS = 10
 BATCH_SIZE = 8
+
+RANDOM_SEED = 12345
 
 
 def run_preprocess(train, test):
@@ -49,8 +51,11 @@ def run_preprocess(train, test):
 
 
 def main():
-    train, test = get_intra_dataset_files()
-    # train, test = get_cross_dataset_files()
+    if RANDOM_SEED > 0:
+        tf.random.set_seed(RANDOM_SEED)
+
+    # train, test = get_intra_dataset_files()
+    train, test = get_cross_dataset_files()
 
     if not train[0].preprocessed:
         print("run preprocessing...")
