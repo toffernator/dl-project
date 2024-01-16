@@ -66,6 +66,7 @@ def run_preprocess(train, test):
 def main():
     if RANDOM_SEED > 0:
         tf.random.set_seed(RANDOM_SEED)
+        tf.keras.utils.set_random_seed(RANDOM_SEED)
 
     # train, test = get_intra_dataset_files()
     train, test = get_cross_dataset_files()

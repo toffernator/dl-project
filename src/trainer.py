@@ -21,7 +21,10 @@ def train_eval(
     test_dataset: list[DatasetFile],
     eval_per_epoch=5,
     save_model=True,
+    reshape=None,
 ):
+    test_per_subject = split_per_subject(test_dataset)
+
     def evaluate_model(verbose=False):
         print("Eval with test dataset")
 
@@ -31,41 +34,43 @@ def train_eval(
         conf_matrix = np.zeros(cm_size, np.int32)
         cm_per_subject = {}
 
-        for idx in range(0, len(test_dataset), batch_size):
-            files = test_dataset[idx : idx + batch_size]
+        for subject, dataset in test_per_subject.items():
+            cm_per_subject[subject] = np.zeros(cm_size, np.int32)
+            for idx in range(0, len(dataset), batch_size):
+                files = dataset[idx : idx + batch_size]
 
-            x_test = []
-            y_test = []
+                x_test = []
+                y_test = []
 
-            for file in files:
-                x_test.append(file.load())
-                y_test.append(file.label.value)
+                for file in files:
+                    feature = file.load()
+                    if reshape:
+                        feature = feature.reshape(reshape)
+                    x_test.append(feature)
+                    y_test.append(file.label.value)
 
-            x_test = np.array(x_test)
-            y_test = tf.one_hot(y_test, len(Label))
+                x_test = np.array(x_test)
+                y_test = tf.one_hot(y_test, len(Label))
 
-            eval_result = model.evaluate(x_test, y_test)
-            eval_results.append(eval_result)
+                eval_result = model.evaluate(x_test, y_test)
+                eval_results.append(eval_result)
 
-            predictions = model.predict(x_test)
+                predictions = model.predict(x_test)
 
-            prediction_label = np.argmax(predictions, axis=1)
-            actual_label = np.array([file.label.value for file in files])
+                prediction_label = np.argmax(predictions, axis=1)
+                actual_label = np.array([file.label.value for file in files])
 
-            cm = confusion_matrix(
-                actual_label, prediction_label, labels=np.arange(len(Label))
-            )
+                cm = confusion_matrix(
+                    actual_label, prediction_label, labels=np.arange(len(Label))
+                )
 
-            conf_matrix += cm
+                conf_matrix += cm
 
-            if not file.subject in cm_per_subject:
-                cm_per_subject[file.subject] = np.zeros(cm_size, np.int32)
+                cm_per_subject[file.subject] += cm
 
-            cm_per_subject[file.subject] += cm
-
-            del x_test
-            del y_test
-            gc.collect()
+                del x_test
+                del y_test
+                gc.collect()
 
         mean_results = np.mean(eval_results, axis=0)
         print(f"Err: {mean_results[0]} Acc: {mean_results[1]}")
@@ -74,7 +79,8 @@ def train_eval(
 
         if verbose:
             for subject, cm in cm_per_subject.items():
-                print(f"Subject {subject}")
+                acc = np.sum(cm.diagonal()) / np.sum(cm)
+                print(f"Subject {subject} (acc: {acc})")
                 print(cm)
 
         return mean_results
@@ -102,7 +108,10 @@ def train_eval(
             y_train = []
 
             for file in files:
-                x_train.append(file.load())
+                feature = file.load()
+                if reshape:
+                    feature = feature.reshape(reshape)
+                x_train.append(feature)
                 y_train.append(file.label.value)
 
             x_train = np.array(x_train)
@@ -117,12 +126,16 @@ def train_eval(
             del y_train
             gc.collect()
 
-        train_losses.append(np.mean(curr_losses))
-        train_accuracies.append(np.mean(curr_accuracies))
+        c_los = np.mean(curr_losses)
+        c_acc = np.mean(curr_accuracies)
+
+        train_losses.append(c_los)
+        train_accuracies.append(c_acc)
+        print(f"Epoch #{epoch} loss: {c_los}, acc: {c_acc}")
 
         ## evaluation
 
-        if eval_per_epoch > 0 and epoch % eval_per_epoch == 0 and epoch > 0:
+        if epoch % eval_per_epoch == 0 and epoch > 0:
             loss, acc = evaluate_model()
             eval_losses.append(loss)
             eval_accuracies.append(acc)
@@ -131,101 +144,19 @@ def train_eval(
     eval_losses.append(loss)
     eval_accuracies.append(acc)
 
-    print(train_losses, train_accuracies)
-    print(eval_losses, eval_accuracies)
-
     x_plot_train = range(epochs)
     x_plot_eval = [x for x in range(epochs) if x % eval_per_epoch == 0 and x > 0]
     x_plot_eval.append(epochs - 1)
 
-    model.save(f"{SAVED_MODEL_DIR}/{model.name}")
+    if save_model:
+        model.save(f"{SAVED_MODEL_DIR}/{model.name}")
 
     plt.clf()
     plt.plot(x_plot_train, train_accuracies, label="train accuracy")
-    plt.plot(x_plot_eval, eval_accuracies, label="eval accuracy")
+    plt.plot(x_plot_eval, eval_accuracies, label="test accuracy")
     plt.legend()
     plt.savefig(".ignore/accuracy.png")
     plt.show()
-
-
-def train_eval_per_subject(
-    model: models.Model,
-    epochs: int,
-    batch_size: int,
-    train_dataset: list[DatasetFile],
-    test_dataset: list[DatasetFile],
-    eval_per_epoch=5,
-    save_model=True,
-):
-    train_per_subject = split_per_subject(train_dataset)
-    test_per_subject = split_per_subject(test_dataset)
-
-    def evaluate_model():
-        print("Eval with test dataset")
-
-        for subject, files in test_per_subject.items():
-            print(f"Test subject {subject}")
-
-            x_test = []
-            y_test = []
-
-            for file in files:
-                x_test.append(file.load())
-                y_test.append(file.label.value)
-
-            x_test = np.array(x_test)
-            y_test = tf.one_hot(y_test, len(Label))
-
-            eval_result = model.evaluate(x_test, y_test)
-
-            predictions = model.predict(x_test)
-
-            prediction_label = np.argmax(predictions, axis=1)
-            actual_label = np.array([file.label.value for file in files])
-
-            confmat = confusion_matrix(
-                actual_label, prediction_label, labels=np.arange(len(Label))
-            )
-
-            print(f"Err: {eval_result[0]} Acc: {eval_result[1]}")
-            print("Conf. Matrix")
-            print(confmat)
-
-            del x_test
-            del y_test
-            gc.collect()
-
-    print("Start training")
-    model.summary()
-
-    for epoch in range(epochs):
-        for subject, files in train_per_subject.items():
-            print(f"Epoch #{epoch} subject {subject}")
-
-            x_train = []
-            y_train = []
-
-            for file in files:
-                x_train.append(file.load())
-                y_train.append(file.label.value)
-
-            x_train = np.array(x_train)
-            y_train = tf.one_hot(y_train, len(Label))
-
-            model.fit(x_train, y_train, batch_size=batch_size, epochs=1)
-
-            del x_train
-            del y_train
-            gc.collect()
-
-        ## evaluation
-
-        if eval_per_epoch > 0 and epoch % eval_per_epoch == 0 and epoch > 0:
-            evaluate_model()
-
-    evaluate_model()
-
-    model.save(f"{SAVED_MODEL_DIR}/{model.name}")
 
 
 def split_per_label(dataset_files: list[DatasetFile]) -> dict[Label, list[DatasetFile]]:
