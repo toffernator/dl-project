@@ -4,6 +4,8 @@ from src.preprocessing.minMaxScaling import MinMaxScalerBatched
 from src.downsampling import Downsampler
 
 import src.utils as utils
+import keras_tuner
+
 from src.dataset_loader import (
     get_intra_dataset_files,
     get_cross_dataset_files,
@@ -78,7 +80,7 @@ def main():
         run_preprocess(train, test)
 
     if NETWORK == NN.CNN:
-        model = cnn_model(INPUT_SHAPE, "intra")
+        model = cnn_model(INPUT_SHAPE, keras_tuner.HyperParameters(),  "intra")
 
     elif NETWORK == NN.LSTM:
         model = lstm_model(INPUT_SHAPE, "intra")

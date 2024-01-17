@@ -5,7 +5,7 @@ from keras import models, layers, losses, regularizers
 from keras.layers import BatchNormalization
 
 
-def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
+def cnn_model(input_shape, hp, name_suffix=None, dropoutRate=0.5):
     tensor_shape = (input_shape[0], input_shape[1], 1)
 
     name = "cnn_model" if not name_suffix else f"cnn_model_{name_suffix}"
@@ -13,8 +13,8 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
     model = models.Sequential(
         [
             layers.Conv2D(
-                4,
-                (4, 4),
+                filters=hp.Int("filters", min_value=4, max_value=16, step=4),
+                kernel_size = (4, 4),
                 activation="relu",
                 input_shape=tensor_shape,
                 strides=(2, 1),
@@ -23,7 +23,11 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
             layers.MaxPool2D((1, 4)),
             layers.Dropout(dropoutRate, noise_shape=None, seed=None),
             # BatchNormalization(),
-            layers.Conv1D(4, 4, activation="relu", strides=1),
+            layers.Conv1D(
+                filters=hp.Int("filters", min_value=4, max_value=16, step=4),
+                kernel_size = 4, 
+                activation="relu", 
+                strides=1),
             layers.MaxPool2D((1, 4)),
             layers.Dropout(dropoutRate, noise_shape=None, seed=None),
             # BatchNormalization(),
@@ -34,7 +38,7 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
             layers.Dropout(dropoutRate, noise_shape=None, seed=None),
             layers.Flatten(),
             # BatchNormalization(),
-            layers.Dense(4, activation="softmax"),
+            layers.Dense(units = hp.Int("units", min_value=4, max_value=16, step=4), activation="softmax"),
         ],
         name=name,
     )
