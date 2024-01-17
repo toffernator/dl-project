@@ -82,19 +82,12 @@ def main():
         print("run preprocessing...")
         run_preprocess(train, test)
 
-    if NETWORK == NN.CNN:
-        model = cnn_model(INPUT_SHAPE, "intra")
-
-    elif NETWORK == NN.LSTM:
-        model = lstm_model(INPUT_SHAPE, "intra")
-
-    elif NETWORK == NN.EEGNet:
-        model = eeg_model(INPUT_SHAPE)
-
-    elif NETWORK == NN.TCN:
-        model = tcn_model(INPUT_SHAPE, BATCH_SIZE, "intra")
-    elif NETWORK == NN.CNN_ATTENTION:
-        model = cnn_model_attention(INPUT_SHAPE, "intra")
+    match NETWORK:
+        case NN.CNN:           model = cnn_model(INPUT_SHAPE, "intra")
+        case NN.LSTM:          model = lstm_model(INPUT_SHAPE, "intra")
+        case NN.EEGNet:        model = eeg_model(INPUT_SHAPE)
+        case NN.TCN:           model = tcn_model(INPUT_SHAPE, BATCH_SIZE, "intra")
+        case NN.CNN_ATTENTION: model = cnn_model_attention(INPUT_SHAPE, "intra")
 
     train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test)
 
