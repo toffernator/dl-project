@@ -9,6 +9,7 @@ from sklearn.metrics import confusion_matrix
 from src.dataset_loader import Label, DatasetFile
 
 import matplotlib.pyplot as plt
+import random
 
 SAVED_MODEL_DIR = "models"
 
@@ -22,8 +23,26 @@ def train_eval(
     eval_per_epoch=5,
     save_model=True,
     reshape=None,
+    initial_eval=True,
+    seed=12345,
+    cross_validate=True,
 ):
     test_per_subject = split_per_subject(test_dataset)
+
+    def load_files(files):
+        x = []
+        y = []
+
+        for file in files:
+            feature = file.load()
+            if reshape:
+                feature = feature.reshape(reshape)
+            x.append(feature)
+            y.append(file.label.value)
+
+        x = np.array(x)
+        y = tf.one_hot(y, len(Label))
+        return x, y
 
     def evaluate_model(verbose=False):
         print("Eval with test dataset")
@@ -39,18 +58,7 @@ def train_eval(
             for idx in range(0, len(dataset), batch_size):
                 files = dataset[idx : idx + batch_size]
 
-                x_test = []
-                y_test = []
-
-                for file in files:
-                    feature = file.load()
-                    if reshape:
-                        feature = feature.reshape(reshape)
-                    x_test.append(feature)
-                    y_test.append(file.label.value)
-
-                x_test = np.array(x_test)
-                y_test = tf.one_hot(y_test, len(Label))
+                x_test, y_test = load_files(files)
 
                 eval_result = model.evaluate(x_test, y_test)
                 eval_results.append(eval_result)
@@ -66,7 +74,7 @@ def train_eval(
 
                 conf_matrix += cm
 
-                cm_per_subject[file.subject] += cm
+                cm_per_subject[subject] += cm
 
                 del x_test
                 del y_test
@@ -88,7 +96,7 @@ def train_eval(
     print("Start training")
     model.summary()
 
-    train_dataset = round_robin(train_dataset, split_per_subject)
+    # train_dataset = round_robin(train_dataset, split_per_subject)
 
     train_losses = []
     train_accuracies = []
@@ -96,28 +104,39 @@ def train_eval(
     eval_losses = []
     eval_accuracies = []
 
+    rnd = random.Random(seed)
+
     for epoch in range(epochs):
         curr_losses = []
         curr_accuracies = []
-        for idx in range(0, len(train_dataset), batch_size):
-            files = train_dataset[idx : idx + batch_size]
+
+        rnd.shuffle(train_dataset)
+
+        train_set = train_dataset
+
+        if cross_validate:
+            validate_set = train_dataset[:batch_size]
+            train_set = train_dataset[batch_size:]
+
+            x_validate, y_validate = load_files(validate_set)
+
+        for idx in range(0, len(train_set), batch_size):
+            files = train_set[idx : idx + batch_size]
 
             print(f"Epoch #{epoch} part #{idx // batch_size}")
 
-            x_train = []
-            y_train = []
+            x_train, y_train = load_files(files)
 
-            for file in files:
-                feature = file.load()
-                if reshape:
-                    feature = feature.reshape(reshape)
-                x_train.append(feature)
-                y_train.append(file.label.value)
-
-            x_train = np.array(x_train)
-            y_train = tf.one_hot(y_train, len(Label))
-
-            model.fit(x_train, y_train, batch_size=batch_size, epochs=1)
+            if cross_validate:
+                model.fit(
+                    x_train,
+                    y_train,
+                    batch_size=batch_size,
+                    epochs=1,
+                    validation_data=(x_validate, y_validate),
+                )
+            else:
+                model.fit(x_train, y_train, batch_size=batch_size, epochs=1)
 
             curr_losses.append(model.history.history["loss"][0])
             curr_accuracies.append(model.history.history["accuracy"][0])
@@ -135,7 +154,7 @@ def train_eval(
 
         ## evaluation
 
-        if epoch % eval_per_epoch == 0 and epoch > 0:
+        if epoch % eval_per_epoch == 0 and (epoch > 0 or initial_eval):
             loss, acc = evaluate_model()
             eval_losses.append(loss)
             eval_accuracies.append(acc)
@@ -145,7 +164,9 @@ def train_eval(
     eval_accuracies.append(acc)
 
     x_plot_train = range(epochs)
-    x_plot_eval = [x for x in range(epochs) if x % eval_per_epoch == 0 and x > 0]
+    x_plot_eval = [
+        x for x in range(epochs) if x % eval_per_epoch == 0 and (x > 0 or initial_eval)
+    ]
     x_plot_eval.append(epochs - 1)
 
     if save_model:
@@ -156,7 +177,12 @@ def train_eval(
     plt.plot(x_plot_eval, eval_accuracies, label="test accuracy")
     plt.legend()
     plt.savefig(".ignore/accuracy.png")
-    plt.show()
+
+    plt.clf()
+    plt.plot(x_plot_train, train_losses, label="train losses")
+    plt.plot(x_plot_eval, eval_losses, label="test losses")
+    plt.legend()
+    plt.savefig(".ignore/loss.png")
 
 
 def split_per_label(dataset_files: list[DatasetFile]) -> dict[Label, list[DatasetFile]]:

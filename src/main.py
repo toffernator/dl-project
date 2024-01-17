@@ -45,8 +45,8 @@ class NN(Enum):
 DOWNSAMPLE_FACTOR = 10
 INPUT_SHAPE = (248, 3563)
 
-TRAIN_EPOCHS = 20
-BATCH_SIZE = 8
+TRAIN_EPOCHS = 30
+BATCH_SIZE = 4
 NETWORK = NN.CNN
 
 RANDOM_SEED = 12345
@@ -89,7 +89,7 @@ def main():
         case NN.TCN:           model = tcn_model(INPUT_SHAPE, BATCH_SIZE, "intra")
         case NN.CNN_ATTENTION: model = cnn_model_attention(INPUT_SHAPE, "intra")
 
-    train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test)
+    train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test, eval_per_epoch=2)
 
     # # first train data in Intra: "dataset/Intra/train/rest_105923_1.h5"
     # matrix = train[0].load()
