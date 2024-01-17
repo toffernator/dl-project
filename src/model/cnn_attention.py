@@ -25,6 +25,7 @@ from keras import models, layers, losses
 from keras.layers import BatchNormalization, MultiHeadAttention
 from keras.layers import Input, Flatten, Dropout, Activation, BatchNormalization
 from keras.layers import (AveragePooling2D,Convolution1D,Convolution2D, GlobalAveragePooling2D, BatchNormalization, Flatten, Dropout)
+from keras_self_attention import SeqSelfAttention
 
 def cnn_model_attention(input_shape, name_suffix=None, dropoutRate=0.2):
     tensor_shape = (input_shape[0], input_shape[1], 1)
@@ -34,7 +35,7 @@ def cnn_model_attention(input_shape, name_suffix=None, dropoutRate=0.2):
 
         Input(shape=(input_shape[0],input_shape[1],1)) ,
         Convolution2D(4, (4, 4), strides=(2, 1), padding="same"), 
-        BatchNormalization(),
+        # BatchNormalization(),
         Activation("relu"),
         AveragePooling2D((1, 4)),
         Dropout(dropoutRate),
@@ -44,20 +45,22 @@ def cnn_model_attention(input_shape, name_suffix=None, dropoutRate=0.2):
         # layers.Dropout(dropoutRate),
 
         Convolution1D(4, 4, strides=1),
-        BatchNormalization(),
+        # BatchNormalization(),
         Activation("relu"),
         AveragePooling2D((1, 4)),
         Dropout(dropoutRate),
 
         Convolution2D(4, (4, 4), strides=(2, 1), padding="same"), 
-        BatchNormalization(),
+        # BatchNormalization(),
         Activation("relu"),
         AveragePooling2D((1, 4)),
         Dropout(dropoutRate),
 
         layers.Reshape((-1, 4)),
 
-        layers.LSTM(4),
+        layers.LSTM(2, return_sequences=True),
+        SeqSelfAttention(attention_activation ='tanh'),
+        layers.LSTM(2, return_sequences=False),
 
         # layers.Flatten(),
         layers.Dense(4, activation="softmax")
@@ -72,34 +75,37 @@ def cnn_model_attention(input_shape, name_suffix=None, dropoutRate=0.2):
 #     ''' Create a standard deep 2D convolutional neural network'''
 #     nclass = 4
 #     inp = Input(shape=(n,input_shape[1],1))  
-#     x = Convolution2D(64, (3,3), strides=(1, 1), padding="same")(inp)    #(4,10)
+#     x = Convolution2D(4, (4,4), strides=(2, 1), padding="same")(inp)   
 #     x = BatchNormalization()(x)
 #     x = Activation("relu")(x)
 #     x = MaxPool2D()(x)
 #     x = Dropout(rate=0.2)(x)
     
-#     x = Convolution2D(128, (3,3), strides=(1, 1), padding="same")(x)
+#     x = Convolution1D(4, 4, strides=1, padding="same")(inp)   
 #     x = BatchNormalization()(x)
 #     x = Activation("relu")(x)
 #     x = MaxPool2D()(x)
 #     x = Dropout(rate=0.2)(x)
     
-#     x = Convolution2D(256, (3,3), strides=(1, 1), padding="same")(x)
+#     x = Convolution2D(4, (4,4), strides=(2, 1), padding="same")(inp)  
 #     x = BatchNormalization()(x)
 #     x = Activation("relu")(x)
 #     x = MaxPool2D()(x)
 #     x = Dropout(rate=0.2)(x)
     
-#     x = Convolution2D(128, (3,3), strides=(1, 1), padding="same")(x)
-#     x = BatchNormalization()(x)
-#     x = Activation("relu")(x)
-#     x = MaxPool2D()(x)
-#     x = Dropout(rate=0.2)(x)
+#     # x = Convolution2D(64, (3,3), strides=(1, 1), padding="same")(x)
+#     # x = BatchNormalization()(x)
+#     # x = Activation("relu")(x)
+#     # x = MaxPool2D()(x)
+#     # x = Dropout(rate=0.2)(x)
     
-#     x = Reshape((-1, 128))(x)
+#     x = Reshape((-1, 4))(x)
     
 #     #LSTM
-#     x = LSTM(128)(x)
+#     x = LSTM(2, return_sequences=True)(x)
+#     x = BatchNormalization()(x)
+#     x = SeqSelfAttention(attention_activation ='tanh')(x)
+#     x = LSTM(2, return_sequences=False)(x)
     
 #     out = Dense(nclass, activation=softmax)(x)
 #     model = models.Model(inputs=inp, outputs=out)

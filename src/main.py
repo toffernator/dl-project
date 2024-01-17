@@ -39,7 +39,7 @@ DOWNSAMPLE_FACTOR = 10
 INPUT_SHAPE = (248, 3563)
 
 TRAIN_EPOCHS = 30
-BATCH_SIZE = 8
+BATCH_SIZE = 4
 NETWORK = NN.CNN 
 
 def run_preprocess(train, test):
