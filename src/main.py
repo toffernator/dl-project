@@ -80,7 +80,10 @@ def main():
     # model = model_RNN(INPUT_SHAPE)
     # model = eeg_model(INPUT_SHAPE)
     # model = tcn_model(INPUT_SHAPE, BATCH_SIZE, "intra")
+        
     model = cnn_model_attention(INPUT_SHAPE, "intra")
+    # model = cnn_model(INPUT_SHAPE, "intra")
+        
         
     train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test)
 
