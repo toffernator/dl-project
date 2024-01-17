@@ -79,19 +79,34 @@ def main():
         print("run preprocessing...")
         run_preprocess(train, test)
 
+    hp = keras_tuner.HyperParameters()
+    build_model = lambda m: m 
     if NETWORK == NN.CNN:
-        model = cnn_model(INPUT_SHAPE, keras_tuner.HyperParameters(),  "intra")
+        build_model = lambda p: cnn_model(INPUT_SHAPE, p,  "intra")
 
     elif NETWORK == NN.LSTM:
-        model = lstm_model(INPUT_SHAPE, "intra")
+        build_model = lambda p: lstm_model(INPUT_SHAPE, "intra")
 
     elif NETWORK == NN.EEGNet:
-        model = eeg_model(INPUT_SHAPE)
+        build_model = lambda p:eeg_model(INPUT_SHAPE)
 
     elif NETWORK == NN.TCN:
-        model = tcn_model(INPUT_SHAPE, BATCH_SIZE, "intra")
+        build_model = lambda p:tcn_model(INPUT_SHAPE, BATCH_SIZE, "intra")
 
-    train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test)
+
+    tuner = keras_tuner.RandomSearch(
+        hypermodel=build_model,
+        hyperparameters=hp,
+        objective="val_accuracy",
+        max_trials=3,
+        executions_per_trial=2,
+        overwrite=True,
+        directory="my_dir",
+        project_name="helloworld",
+    )
+    #Sadly I fear we'll need to make pretty intrusive changes to actually make this code work. 
+    #Whick sucks
+    train_eval(tuner, TRAIN_EPOCHS, BATCH_SIZE, train, test)
 
     # # first train data in Intra: "dataset/Intra/train/rest_105923_1.h5"
     # matrix = train[0].load()
