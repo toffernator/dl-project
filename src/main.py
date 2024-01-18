@@ -19,7 +19,7 @@ from tensorflow import keras
 import tensorflow as tf
 
 # from tcn import TCN, tcn_full_summary
-# from src.model.lstm import lstm_model
+from src.model.lstm import lstm_model
 from src.model.cnn_1d import cnn_1d_model
 from src.model.cnn import cnn_model
 from src.model.cnn_attention import cnn_model_attention
@@ -49,7 +49,7 @@ INPUT_SHAPE = (248, 3563)
 
 TRAIN_EPOCHS = 30
 BATCH_SIZE = 4
-NETWORK = NN.CNN_1D
+NETWORK = NN.CNN
 
 RANDOM_SEED = 12345
 
