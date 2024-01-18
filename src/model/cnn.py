@@ -83,8 +83,8 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
         [
             layers.Input(shape=tensor_shape),
             layers.Conv2D(
-                12,
-                (4, 4),
+                4,
+                (3, 3),
                 strides=(2, 1),
                 kernel_initializer=init,
                 padding="same",
@@ -94,8 +94,8 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
             layers.MaxPool2D((1, 4)),
             # layers.Dropout(dropoutRate, noise_shape=None),
             layers.Conv1D(
-                12,
                 4,
+                3,
                 strides=1,
                 kernel_initializer=init,
                 padding="same",
@@ -105,8 +105,8 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
             layers.MaxPool2D((1, 4)),
             # layers.Dropout(dropoutRate, noise_shape=None),
             layers.Conv2D(
-                12,
-                (4, 4),
+                4,
+                (3, 3),
                 input_shape=tensor_shape,
                 strides=(2, 1),
                 kernel_initializer=init,

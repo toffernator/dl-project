@@ -2,6 +2,7 @@ import tensorflow as tf
 
 keras = tf.keras
 from keras import models
+from keras.callbacks import EarlyStopping
 
 import numpy as np
 import gc
@@ -26,6 +27,7 @@ def train_eval(
     initial_eval=True,
     seed=12345,
     cross_validate=True,
+    early_stopping_patience=2,
 ):
     test_per_subject = split_per_subject(test_dataset)
 
@@ -106,6 +108,12 @@ def train_eval(
 
     rnd = random.Random(seed)
 
+    early_stopping = EarlyStopping(
+        monitor='accuracy',
+        patience=early_stopping_patience,
+        restore_best_weights=True,
+    )
+
     for epoch in range(epochs):
         curr_losses = []
         curr_accuracies = []
@@ -134,9 +142,14 @@ def train_eval(
                     batch_size=batch_size,
                     epochs=1,
                     validation_data=(x_validate, y_validate),
+                    callbacks=[early_stopping],
                 )
             else:
-                model.fit(x_train, y_train, batch_size=batch_size, epochs=1)
+                model.fit(x_train, y_train, batch_size=batch_size, epochs=1, callbacks=[early_stopping],)
+
+            if early_stopping.stopped_epoch > 0:
+                print(f"Early stopping at epoch {epoch}")
+                break
 
             curr_losses.append(model.history.history["loss"][0])
             curr_accuracies.append(model.history.history["accuracy"][0])
