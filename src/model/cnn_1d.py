@@ -24,25 +24,28 @@ def cnn_1d_model(input_shape, name_suffix=None, dropoutRate=0.2):
             layers.Conv1D(
                 4,
                 32,
-                activation="relu",
                 input_shape=tensor_shape,
                 strides=1,
                 kernel_initializer="he_normal",
+                activation="relu"
             ),
             layers.MaxPool2D((1, 4)),
             layers.Dropout(dropoutRate, noise_shape=None),
-            # BatchNormalization(),
-            layers.Conv1D(4, 4, activation="relu", strides=1),
+
+
+            layers.Conv1D(4, 4, strides=1, activation="relu"),
             layers.MaxPool2D((1, 4)),
             layers.Dropout(dropoutRate, noise_shape=None),
-            # BatchNormalization(),
+
+
             layers.Conv1D(
-                4, 32, activation="relu", input_shape=tensor_shape, strides=1
+                4, 4, strides=1, activation="relu"
             ),
             layers.MaxPool2D((1, 4)),
             layers.Dropout(dropoutRate, noise_shape=None),
+
+
             layers.Flatten(),
-            # BatchNormalization(),
             layers.Dense(4, activation="softmax"),
         ],
         name=name,
