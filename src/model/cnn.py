@@ -116,7 +116,7 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
             layers.Activation("relu"),
             layers.MaxPool2D((1, 4)),
             layers.Flatten(),
-            layers.Dropout(dropoutRate, noise_shape=None),
+            # layers.Dropout(dropoutRate, noise_shape=None),
             layers.Dense(
                 4,
                 activation="softmax",
