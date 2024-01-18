@@ -1,16 +1,18 @@
 import tensorflow as tf
 
-keras = tf.keras
-from keras import models
-from keras.callbacks import EarlyStopping
+from src.utils import conf_matrix_to_latex_table
 
-import numpy as np
+keras = tf.keras
 import gc
-from sklearn.metrics import confusion_matrix
-from src.dataset_loader import Label, DatasetFile
+import random
 
 import matplotlib.pyplot as plt
-import random
+import numpy as np
+from keras import models
+from keras.callbacks import EarlyStopping
+from sklearn.metrics import confusion_matrix
+
+from src.dataset_loader import DatasetFile, Label
 
 SAVED_MODEL_DIR = "models"
 
@@ -77,6 +79,7 @@ def train_eval(
                 conf_matrix += cm
 
                 cm_per_subject[subject] += cm
+                conf_matrix_to_latex_table(cm, subject, model.name)
 
                 del x_test
                 del y_test
@@ -86,6 +89,7 @@ def train_eval(
         print(f"Err: {mean_results[0]} Acc: {mean_results[1]}")
         print("Conf. Matrix (all)")
         print(conf_matrix)
+        conf_matrix_to_latex_table(conf_matrix, "all_subjects", model.name)
 
         if verbose:
             for subject, cm in cm_per_subject.items():
@@ -222,5 +226,4 @@ def split_per_subject(dataset_files: list[DatasetFile]) -> dict[str, list[Datase
 
 
 def round_robin(list, split_func):
-    splitted = split_func(list)
     return [item for items in zip(*splitted.values()) for item in items]

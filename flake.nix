@@ -29,12 +29,25 @@
         };
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [ self.packages.${system}.src ];
-          # Still want h5py available. For now, python311packages.h5py has the
-          # version 3.10.0 which is the same specified in poetry.lock.
-          packages = with pkgs; [ poetry python311Packages.h5py ];
-          # Linking shared libraries for zlib is broken, this points nix to the
-          # correct place.
+          packages = with pkgs; [ 
+            poetry
+            
+            python311
+            pre-commit
+            python311Packages.black
+            python311Packages.isort
+            
+            python311Packages.scipy
+            python311Packages.scikit-learn
+            python311Packages.h5py
+            python311Packages.matplotlib
+            python311Packages.tensorflow
+            python311Packages.keras
+            python311Packages.pytorch
+            python311Packages.pandas
+            keras-tcn
+          ];
+          
           shellHook = ''
             export LD_LIBRARY_PATH="${pkgs.zlib}/lib:$LD_LIBRARY_PATH"
           '';
