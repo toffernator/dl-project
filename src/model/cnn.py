@@ -77,15 +77,15 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
     #     name=name,
     # )
 
-    init = initializers.HeNormal()
+    init = initializers.he_uniform()
 
     model = models.Sequential(
         [
             layers.Input(shape=tensor_shape),
             layers.Conv2D(
                 4,
-                (3, 3),
-                strides=(2, 1),
+                (5, 5),
+                strides=(1, 1),
                 kernel_initializer=init,
                 padding="same",
             ),
@@ -95,26 +95,26 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
             # layers.Dropout(dropoutRate, noise_shape=None),
             layers.Conv1D(
                 4,
-                3,
+                5,
                 strides=1,
                 kernel_initializer=init,
                 padding="same",
             ),
             layers.BatchNormalization(),
             layers.Activation("relu"),
-            layers.MaxPool2D((1, 4)),
+            layers.MaxPool2D((1,4)),
             # layers.Dropout(dropoutRate, noise_shape=None),
             layers.Conv2D(
                 4,
-                (3, 3),
+                (5, 5),
                 input_shape=tensor_shape,
-                strides=(2, 1),
+                strides=(1, 1),
                 kernel_initializer=init,
                 padding="same",
             ),
             layers.BatchNormalization(),
             layers.Activation("relu"),
-            layers.MaxPool2D((1, 4)),
+            layers.MaxPool2D((2, 2)),
             layers.Flatten(),
             layers.Dropout(dropoutRate, noise_shape=None),
             layers.Dense(
@@ -128,7 +128,7 @@ def cnn_model(input_shape, name_suffix=None, dropoutRate=0.5):
     )
 
     model.compile(
-        optimizer=optimizers.Adam(learning_rate=1e-5),
+        optimizer=optimizers.Adam(learning_rate=1e-4),
         loss=losses.CategoricalCrossentropy(),
         metrics=["accuracy"],
     )
