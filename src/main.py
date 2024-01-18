@@ -20,6 +20,7 @@ import tensorflow as tf
 
 # from tcn import TCN, tcn_full_summary
 # from src.model.lstm import lstm_model
+from src.model.cnn_1d import cnn_1d_model
 from src.model.cnn import cnn_model
 from src.model.cnn_attention import cnn_model_attention
 
@@ -37,6 +38,7 @@ class NN(Enum):
     EEGNet = 3
     TCN = 4
     CNN_ATTENTION = 5
+    CNN_1D = 6
 
 
 # DOWNSAMPLE_FACTOR = 5
@@ -47,7 +49,7 @@ INPUT_SHAPE = (248, 3563)
 
 TRAIN_EPOCHS = 30
 BATCH_SIZE = 4
-NETWORK = NN.CNN
+NETWORK = NN.CNN_1D
 
 RANDOM_SEED = 12345
 
@@ -88,6 +90,7 @@ def main():
         case NN.EEGNet:        model = eeg_model(INPUT_SHAPE)
         case NN.TCN:           model = tcn_model(INPUT_SHAPE, BATCH_SIZE, "intra")
         case NN.CNN_ATTENTION: model = cnn_model_attention(INPUT_SHAPE, "intra")
+        case NN.CNN_1D:        model = cnn_1d_model(INPUT_SHAPE, "intra")
 
     train_eval(model, TRAIN_EPOCHS, BATCH_SIZE, train, test, eval_per_epoch=2)
 
