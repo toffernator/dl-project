@@ -17,7 +17,7 @@ from keras.layers import (
 
 def cnn_1d_model(input_shape, name_suffix=None, dropoutRate=0.2):
     tensor_shape = (input_shape[0], input_shape[1], 1)
-    name = "cnn_1d_model" if not name_suffix else f"cnn_1d_model{name_suffix}"
+    name = "cnn_1d_model" if not name_suffix else f"cnn_1d_model_{name_suffix}"
 
     model = models.Sequential(
         [
