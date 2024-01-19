@@ -113,7 +113,7 @@ def train_eval(
     rnd = random.Random(seed)
 
     early_stopping = EarlyStopping(
-        monitor='accuracy',
+        monitor="accuracy",
         patience=early_stopping_patience,
         restore_best_weights=True,
     )
@@ -149,7 +149,13 @@ def train_eval(
                     callbacks=[early_stopping],
                 )
             else:
-                model.fit(x_train, y_train, batch_size=batch_size, epochs=1, callbacks=[early_stopping],)
+                model.fit(
+                    x_train,
+                    y_train,
+                    batch_size=batch_size,
+                    epochs=1,
+                    callbacks=[early_stopping],
+                )
 
             if early_stopping.stopped_epoch > 0:
                 print(f"Early stopping at epoch {epoch}")
@@ -193,12 +199,16 @@ def train_eval(
     plt.plot(x_plot_train, train_accuracies, label="train accuracy")
     plt.plot(x_plot_eval, eval_accuracies, label="test accuracy")
     plt.legend()
+    plt.xlabel("epochs")
+    plt.ylabel("accuracy")
     plt.savefig(".ignore/accuracy.png")
 
     plt.clf()
     plt.plot(x_plot_train, train_losses, label="train losses")
     plt.plot(x_plot_eval, eval_losses, label="test losses")
     plt.legend()
+    plt.xlabel("epochs")
+    plt.ylabel("loss")
     plt.savefig(".ignore/loss.png")
 
 
